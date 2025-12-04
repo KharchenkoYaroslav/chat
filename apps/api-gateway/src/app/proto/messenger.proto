@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package messenger;
+
+service MessengerService {
+  rpc FindPerson (Name) returns (FindPersonResponse);
+  rpc GetMessages (GetMessagesRequest) returns (GetMessagesResponse);
+  rpc SendMessage (SendMessageRequest) returns (Message);
+  rpc EditMessage (EditMessageRequest) returns (Message);
+  rpc DeleteMessage (DeleteMessageRequest) returns (DeleteMessageResponse);
+  rpc CheckOwnership (CheckOwnershipRequest) returns (BoolResponse);
+  rpc GetFullChatHistory (GetMessagesRequest) returns (GetMessagesResponse);
+}
+
+message BoolResponse {
+  bool success = 1;
+}
+
+message Name {
+  string name = 1;
+}
+
+message Person {
+  string id = 1;
+  string name = 2;
+}
+
+message FindPersonResponse {
+  repeated Person persons = 1;
+}
+
+message GetMessagesRequest {
+  string participantA = 1;
+  string participantB = 2;
+  optional string lastMessageId = 3;
+}
+
+message Message {
+  string id = 1;
+  string sender = 2;
+  string recipient = 3;
+  string content = 4;
+  string createdAt = 5;
+}
+
+message DeleteMessageResponse {
+  string id = 1;
+  string sender = 2;
+  string recipient = 3;
+}
+
+message GetMessagesResponse {
+  repeated Message messages = 1;
+}
+
+message SendMessageRequest {
+  string sender = 1;
+  string recipient = 2;
+  string content = 3;
+}
+
+message EditMessageRequest {
+  string messageId = 1;
+  string newContent = 2;
+}
+
+message DeleteMessageRequest {
+  string messageId = 1;
+}
+
+message CheckOwnershipRequest {
+  string userId = 1;
+  string messageId = 2;
+}

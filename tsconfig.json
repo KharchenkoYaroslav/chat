@@ -4,10 +4,19 @@
   "files": [],
   "references": [
     {
-      "path": "./apps/chat-e2e"
+      "path": "./apps/messenger-service"
     },
     {
-      "path": "./apps/chat"
+      "path": "./apps/auth-service"
+    },
+    {
+      "path": "./apps/api-gateway"
+    },
+    {
+      "path": "./apps/client"
     }
-  ]
+  ],
+  "compilerOptions": {
+    "esModuleInterop": true
+  }
 }

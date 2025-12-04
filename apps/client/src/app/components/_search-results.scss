@@ -1,0 +1,41 @@
+@use "sass:color";
+@use '../_variables.scss' as *;
+
+.searchResults {
+  position: absolute;
+  background-color: $color-white;
+  border-radius: 5px;
+  width: 200px;
+  text-align: center;
+  color: $color-blue-5;
+  font-weight: 400;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 1px 5px $color-shadow-1;
+  margin-top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.searchResultItem {
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid $color-blue-5;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: $color-blue-5;
+    color: $color-white;
+  }
+}

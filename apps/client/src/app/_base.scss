@@ -1,0 +1,29 @@
+@use "sass:color";
+@use './_variables.scss' as *;
+
+
+body {
+  background-color: $color-blue-3;
+  font-family: 'Montserrat Alternates';
+  transition: background-color 0.3s ease;
+  margin: 0;
+}
+
+* {
+  scrollbar-color: snow rgba(0, 0, 0, 0);
+  scrollbar-gutter: round;
+}
+
+.app {
+  display: flex;
+}
+
+.active {
+  display: block;
+  transition: display 0.3s ease;
+}
+
+.hidden {
+  display: none;
+  transition: display 0.3s ease;
+}
