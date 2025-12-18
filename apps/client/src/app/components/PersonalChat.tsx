@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import styles from '../app.module.scss';
 import { io, Socket } from 'socket.io-client';
 import { MdEdit } from 'react-icons/md';
@@ -88,9 +88,16 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
 
   const MESSAGE_LOAD_LIMIT = 100;
 
-  const sortedMessages = [...messages.values()].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-  );
+  const sortedMessages = useMemo(() => {
+    return [...messages.values()].sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+  }, [messages]);
+
+  // Отримуємо ID останнього повідомлення в списку
+  const lastMessageId = sortedMessages.length > 0
+    ? sortedMessages[sortedMessages.length - 1].id
+    : null;
 
   const handleGetLogin = useCallback(
     async (id: string): Promise<string> => {
@@ -135,7 +142,7 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
   );
 
   const fetchHistory = useCallback(
-    async (lastMessageId?: string): Promise<void> => {
+    async (lastMessageIdParam?: string): Promise<void> => {
       try {
         const res = await axios.get<{ messages: Message[] }>(
           `${BASE_URL}/get-old-messages`,
@@ -143,7 +150,7 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
             params: {
               participantA: userId,
               participantB: selectedPersonId,
-              lastMessageId,
+              lastMessageId: lastMessageIdParam,
             },
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -405,11 +412,12 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
     setHasMoreMessages(true);
   }, [selectedPersonId]);
 
+  // Спрацьовує тільки якщо змінився ID останнього повідомлення (нове повідомлення в кінці)
   useEffect(() => {
-    if (messages.size > 0) {
+    if (lastMessageId) {
       scrollToBottom();
     }
-  }, [messages.size, scrollToBottom]);
+  }, [lastMessageId, scrollToBottom]);
 
 
   return (
