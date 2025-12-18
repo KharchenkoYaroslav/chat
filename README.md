@@ -1,101 +1,101 @@
-# Chat
+# 📨 Chat
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+An interactive real-time chat platform built to explore WebSocket technology. Using NestJS for the backend and React for the client.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## 📦 Technologies
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/node?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+- `TypeScript`
+- `Nx`
+- `NestJS`
+- `WebSockets`
+- `gRPC`
+- `RabbitMQ`
+- `Docker`
+- `TypeORM`
+- `Vite`
+- `React`
+- `SCSS`
 
-## Run tasks
+## 🚀 Features
 
-To run the dev server for your app, use:
+- **Real-time Messaging**: Using WebSockets for seamless real-time communication
+- **Message Management**: Ability to send, edit, and delete messages
+- **User Discovery**: Global search functionality to find and connect with other users
+- **Profile Settings**: Secure options to change login credentials and passwords
+- **Secure Authentication**: Robust login and registration system utilizing Guard protections
+- **Scalable Architecture**: Microservices communicating via gRPC within an Nx monorepo
 
-```sh
-npx nx serve chat
+## 📍 The Process
+
+I started this project to gain more experience working with WebSockets, a simple chat is best suited for this purpose as it covers such important aspects as isolation and security (I used separate rooms for communication between users, and a user who is not a participant in the conversation cannot find out anything about it because the participant's identity is verified through their token), a full pool of operations (I learned how to process deletion or update operations on the client) and, finally, a combination with REST to retrieve old messages.
+
+## 🏗️ System Architecture
+
+The system follows a scalable microservices architecture managed within an **Nx** monorepo. It leverages different communication protocols to ensure performance and real-time capabilities:
+
+- **API Gateway** (`REST API` & `WebSockets`): The central entry point that aggregates data from internal services. It handles HTTP requests and establishes persistent WebSocket connections for real-time messaging.
+- **Auth Service** & **Messenger Service** (`gRPC`): High-performance internal microservices responsible for core business logic. They communicate with the Gateway via gRPC to efficiently handle user identities and message persistence.
+- **Client** (`React`): A modern Single Page Application (SPA) built with Vite. It consumes the Gateway's REST API and connects to WebSockets for instant chat updates.
+
+## 📂 Project Structure
+
+This monorepo project is organised into the following applications:
+
+- `apps/client` - Frontend application built with React, Vite, and SCSS.
+- `apps/api-gateway` - Main server entry point handling REST routes and WebSocket events.
+- `apps/auth-service` - Microservice handling user registration, login, and authentication.
+- `apps/messenger-service` - Core microservice for managing chat history, messages, and user search.
+
+## ℹ️ Environment
+```
+# Database Connection URL (For simplicity, it uses one database for all services. Don't do that in real projects!)
+DATABASE_URL=postgresql://user:password@host_url/database_name?sslmode=require
+
+# JWT Configuration
+# Generate strong random strings for these secrets
+JWT_SECRET=your_super_secret_jwt_string_here
+
+# Service Configuration & Ports
+VITE_API_URL=http://localhost:4000
+SERVER_PORT=4000
+AUTH_SERVICE_URL=localhost:4010
+MESSENGER_SERVICE_URL=localhost:4020
+
+# Message Broker Configuration
+RABBITMQ_URL=amqp://user:password@localhost:5672
 ```
 
-To create a production bundle:
+## 🚦 Running the Project
 
-```sh
-npx nx build chat
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Configure environment variables:
+   - Create a `.env` file in the root directory.
+   - Add the necessary variables as described in the **Environment** section.
+4. Start the RabbitMQ
+5. Start the applications:
+You can run the entire platform at once or start specific services as needed.
+
+Option A: Run All Services 
 ```
-
-To see all available targets to run for a project, run:
-
-```sh
-npx nx show project chat
+npx nx run-many --target=serve --all --parallel=5
 ```
-
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
-
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
-
-```sh
-npx nx g @nx/node:app demo
+Option B: Run Services Individually (Recommended for development)
 ```
+# Backend Services
+npx nx serve api-gateway
+npx nx serve auth-service
+npx nx serve messenger-service
 
-To generate a new library, use:
-
-```sh
-npx nx g @nx/node:lib mylib
+# Frontend
+npx nx serve client
 ```
+6. Open `http://localhost:4200` in your browser
+> [!TIP]
+> Highly recommend installing the Nx Console extension for VS Code.
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+## 🎞️ Preview
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
-```
-
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/node?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
+https://github.com/user-attachments/assets/92cc3dbe-c8e8-4232-97bb-ff2b94b7542e
 - [Our Youtube channel](https://www.youtube.com/@nxdevtools)
 - [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
