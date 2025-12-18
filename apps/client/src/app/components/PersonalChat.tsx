@@ -303,20 +303,17 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
             participantB: selectedPersonId,
           },
           headers: { Authorization: `Bearer ${token}` },
-          responseType: 'blob', // Важливо: очікуємо файл (blob)
+          responseType: 'blob',
         }
       );
 
-      // Створення тимчасового посилання для скачування файлу
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      // Вказуємо ім'я файлу для збереження
       link.setAttribute('download', `history_${userId}_${selectedPersonId}.json`);
       document.body.appendChild(link);
       link.click();
 
-      // Прибирання
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
