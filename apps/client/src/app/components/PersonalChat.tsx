@@ -20,11 +20,6 @@ interface Message {
   createdAt: string;
 }
 
-interface RoomJoinResponse {
-  success: boolean;
-  message?: string;
-}
-
 interface ServerException {
   error: string;
   code?: number;
@@ -86,9 +81,10 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
   const [userLogins, setUserLogins] = useState<Map<string, string>>(new Map());
   const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(true);
   const [messageInput, setMessageInput] = useState<string>('');
+  const [isSending, setIsSending] = useState<boolean>(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const hasScrolledRef = useRef(false);
 
   const MESSAGE_LOAD_LIMIT = 100;
 
@@ -165,12 +161,9 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
         setHasMoreMessages(
           (res.data.messages?.length ?? 0) === MESSAGE_LOAD_LIMIT
         );
-        console.log('History loaded, count:', res.data.messages?.length ?? 0);
       } catch (err: unknown) {
         if (err instanceof Error) {
           console.error('Failed to fetch history:', err.message);
-        } else {
-          console.error('Failed to fetch history:', err);
         }
       }
     },
@@ -178,7 +171,10 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
   );
 
   const sendMessage = useCallback(async () => {
-    if (!messageInput.trim()) return;
+    if (!messageInput.trim() || isSending) return;
+
+    setIsSending(true);
+    setError(null);
 
     try {
       await axios.post(
@@ -212,13 +208,16 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
       } else {
         setError('Send failed: Unknown error.');
       }
+    } finally {
+      setIsSending(false);
     }
-  }, [messageInput, selectedPersonId, token]);
+  }, [messageInput, selectedPersonId, token, isSending]);
 
   const editMessage = useCallback(
     async (messageId: string, newContent: string) => {
       if (!messageId || !newContent.trim()) return;
 
+      setError(null);
       try {
         await axios.patch(
           `${BASE_URL}/edit-message`,
@@ -247,8 +246,6 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
           );
         } else if (err instanceof Error) {
           setError(err.message);
-        } else {
-          setError('Edit failed: Unknown error');
         }
       }
     },
@@ -259,6 +256,7 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
     async (messageId: string) => {
       if (!messageId) return;
 
+      setError(null);
       try {
         await axios.delete(`${BASE_URL}/delete-message`, {
           data: { messageId },
@@ -280,8 +278,6 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
           );
         } else if (err instanceof Error) {
           setError(err.message);
-        } else {
-          setError('Delete failed: Unknown error');
         }
       }
     },
@@ -289,11 +285,13 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
   );
 
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    hasScrolledRef.current = true;
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   }, []);
 
   const handleDownloadHistory = async () => {
+    setError(null);
     try {
       const response = await axios.get(
         `${BASE_URL}/download-history`,
@@ -313,12 +311,27 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
       link.setAttribute('download', `history_${userId}_${selectedPersonId}.json`);
       document.body.appendChild(link);
       link.click();
-
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Failed to download history', err);
-      alert('Failed to download chat history');
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError<{ message: string }>;
+        if (axiosError.response) {
+          setError(
+            `Download failed: ${
+              axiosError.response.status
+            } (Server error)`
+          );
+        } else if (axiosError.request) {
+          setError('Download failed: No response from server.');
+        } else {
+          setError('Download failed: An error occurred.');
+        }
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Download failed: Unknown error.');
+      }
     }
   };
 
@@ -341,20 +354,15 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
     const socket: Socket = io(BASE_URL, { auth: { token } });
 
     socket.on('connect', () => {
-      console.log('Connected:', socket.id);
       socket.emit(
         'join-room',
         { participantA: userId, participantB: selectedPersonId },
-        (res: RoomJoinResponse) => {
-          console.log('Joined room:', res);
-          void fetchHistory();
-        }
+        () => void fetchHistory()
       );
     });
 
     socket.on('new-message', (msg: Message) => {
       setMessages((prev) => new Map(prev).set(msg.id, msg));
-      console.log('New message received:', msg);
     });
 
     socket.on('edit-message', (msg: { id: string; content: string }) => {
@@ -367,7 +375,6 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
         }
         return prev;
       });
-      console.log('Message edited:', msg.id);
     });
 
     socket.on('delete-message', (messageId: string) => {
@@ -376,7 +383,6 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
         newMessages.delete(messageId);
         return newMessages;
       });
-      console.log('Message deleted:', messageId);
     });
 
     socket.on('connect_error', (err: Error) =>
@@ -386,8 +392,6 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
       if (typeof err === 'object' && err !== null && 'error' in err) {
         const exception = err as ServerException;
         console.error('Server exception:', exception.error, exception.code);
-      } else {
-        console.error('Unknown server exception:', err);
       }
     });
 
@@ -399,11 +403,10 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
   useEffect(() => {
     setMessages(new Map());
     setHasMoreMessages(true);
-    hasScrolledRef.current = false;
   }, [selectedPersonId]);
 
   useEffect(() => {
-    if (!hasScrolledRef.current && messages.size > 0) {
+    if (messages.size > 0) {
       scrollToBottom();
     }
   }, [messages.size, scrollToBottom]);
@@ -426,7 +429,7 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
         )}
 
         {sortedMessages.length > 0 && (
-          <button className={styles.scrollToBottomButton} onClick={scrollToBottom}>
+          <button className={styles.scrollToBottomButton} onClick={() => scrollToBottom()}>
             <FaRegArrowAltCircleDown/>
           </button>
         )}
@@ -458,26 +461,15 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
                 <div className={styles.messageActions}>
                   <button
                     onClick={() => {
-                      const newContent = prompt(
-                        'Edit message:',
-                        m.content
-                      );
-                      if (
-                        newContent !== null &&
-                        newContent.trim() !== '' &&
-                        m.id
-                      ) {
+                      const newContent = prompt('Edit message:', m.content);
+                      if (newContent !== null && newContent.trim() !== '' && m.id) {
                         void editMessage(m.id, newContent);
                       }
                     }}
                   >
                     <MdEdit />
                   </button>
-                  <button
-                    onClick={() => {
-                      if (m.id) void deleteMessage(m.id);
-                    }}
-                  >
+                  <button onClick={() => m.id && void deleteMessage(m.id)}>
                     <MdDeleteForever />
                   </button>
                 </div>
@@ -493,19 +485,19 @@ const PersonalChat: React.FC<PersonalChatProps> = ({
           type="text"
           value={messageInput}
           onChange={(e) => setMessageInput(e.target.value)}
-          placeholder="Enter message..."
+          placeholder={isSending ? "Sending..." : "Enter message..."}
+          disabled={isSending}
           className={styles.messageInput}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              void sendMessage();
-            }
+            if (e.key === 'Enter') void sendMessage();
           }}
         />
         <button
           onClick={() => void sendMessage()}
           className={styles.sendMessageButton}
+          disabled={isSending || !messageInput.trim()}
         >
-          Send
+          {isSending ? "..." : "Send"}
         </button>
         <button
             className={styles.downloadButton}
