@@ -97,5 +97,3 @@ npx nx serve client
 ## 🎞️ Preview
 
 https://github.com/user-attachments/assets/92cc3dbe-c8e8-4232-97bb-ff2b94b7542e
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
