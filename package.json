@@ -11,7 +11,7 @@
     "@nestjs/platform-express": "^11.1.11",
     "@nestjs/platform-socket.io": "^11.1.11",
     "amqplib": "^0.10.9",
-    "axios": "^1.13.2",
+    "axios": "^1.13.5",
     "pg": "^8.16.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
