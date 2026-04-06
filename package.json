@@ -7,7 +7,7 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.14.3",
     "@nestjs/common": "^11.1.11",
-    "@nestjs/core": "^11.1.11",
+    "@nestjs/core": "^11.1.18",
     "@nestjs/platform-express": "^11.1.11",
     "@nestjs/platform-socket.io": "^11.1.11",
     "amqplib": "^0.10.9",
